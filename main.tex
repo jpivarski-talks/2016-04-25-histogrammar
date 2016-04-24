@@ -473,17 +473,17 @@ Histogrammar should link to external packages, such as Matplotlib and ROOT, to d
 \hspace{-0.5 cm}\begin{minipage}{\linewidth}
 \tiny
 \renewcommand{\arraystretch}{1.3}
-\begin{tabular}{p{0.1\linewidth} p{0.9\linewidth}}
-Primitive       & Description \\\hline
-Count           & Count data, ignoring their content. (Actually a sum of weights.) \\
+\begin{tabular}{| p{0.1\linewidth} p{0.9\linewidth} |}\hline
+\bf Primitive       & \bf Description \\\hline
+Count           & Count data, ignoring their content. (Actually a sum of weights.) \\\hline
 Sum             & Accumulate the sum of a given quantity. \\
 Average         & Accumulate the weighted mean of a given quantity. \\
 Deviate         & Accumulate a weighted variance, mean, and total weight of a given quantity (using an algorithm that is stable for large numbers). \\
 AbsoluteErr     & Accumulate the weighted Mean Absolute Error (MAE) of a quantity whose nominal value is zero. \\
 Minimize        & Find the minimum value of a given quantity. If no data are observed, the result is NaN. \\
 Maximize        & Find the maximum value of a given quantity. If no data are observed, the result is NaN. \\
-Quantile        & Accumulate an adaptively binned histogram to compute approximate quantiles, such as the median. \\
-Bag             & Accumulate raw data up to an optional limit, at which point only the total number is preserved. \\
+Quantile        & Accumulate an adaptively binned histogram to compute approximate quantiles, such as the median. \\\hline
+Bag             & Accumulate raw data up to an optional limit, at which point only the total number is preserved. \\\hline
 Bin             & Split a given quantity into equally spaced bins between specified limits and fill only one bin per datum. \\
 SparselyBin     & Split a quantity into equally spaced bins, filling only one bin per datum and creating new bins as necessary. \\
 CentrallyBin    & Split a quantity into bins defined by a set of bin centers, filling only one datum per bin with no overflows or underflows. \\
@@ -491,11 +491,11 @@ AdaptivelyBin   & Split a quanity into bins dynamically with a clustering algori
 Fraction        & Accumulate two containers, one with all data (denominator), and one with data that pass a given selection (numerator). \\
 Stack           & Accumulate a suite containers, filling all that are above a given cut on a given expression. \\
 Partition       & Accumulate a suite containers, filling the one that is between a pair of given cuts on a given expression. \\
-Categorize      & Split a given quantity by its categorical (string-based) value and fill only one category per datum. \\
+Categorize      & Split a given quantity by its categorical (string-based) value and fill only one category per datum. \\\hline
 Label           & Accumulate any number of containers of the SAME type and label them with strings. Every one is filled with every input datum. \\
 UntypedLabel    & Accumulate containers of any type except Count and label them with strings. Every one is filled with every input datum. \\
 Index           & Accumulate any number of containers of the SAME type anonymously in a list. Every one is filled with every input datum. \\
-Branch          & Accumulate containers of DIFFERENT types, indexed by i0 through i9. Every one is filled with every input datum. \\
+Branch          & Accumulate containers of DIFFERENT types, indexed by i0 through i9. Every one is filled with every input datum. \\\hline
 \end{tabular}
 \end{minipage}
 \end{frame}
