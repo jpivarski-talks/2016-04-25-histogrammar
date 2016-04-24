@@ -175,7 +175,7 @@ val h = Histogram("pt", 100, 0, 20,
                   {d => sqrt(d.px**2 + d.py**2)})
 \end{lstlisting}
 
-\hfill ``fill rule:'' $f: \mathcal{D} \to \Bbb{R}$ \hspace{2.1 cm}
+\hfill ``fill rule:'' $f: \mathcal{D} \to \mathbb{R}$ \hspace{2.1 cm}
 
 \vfill
 This more functional design allows the filling and merging to be automatic: no user input required.
@@ -306,7 +306,7 @@ where {\tt \small cut} is a function from $\mathcal{D} \to$ bool; two identical 
 \begin{lstlisting}[language=scala]
 val stack = Stack(q, cuts, Histogram(...))
 \end{lstlisting}
-where {\tt \small q} is a function from $\mathcal{D} \to \Bbb{R}$ and {\tt \small cuts} are successively tighter thresholds; $N_{\mbox{\scriptsize cuts}} + 1$ histograms are created.
+where {\tt \small q} is a function from $\mathcal{D} \to \mathbb{R}$ and {\tt \small cuts} are successively tighter thresholds; $N_{\mbox{\scriptsize cuts}} + 1$ histograms are created.
 
 \vfill
 \begin{lstlisting}[language=scala]
