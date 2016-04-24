@@ -412,7 +412,7 @@ val all_histograms = Label("px" -> px_histogram,
   "pt" -> pt_histogram, "cut" -> cut_histogram)
 
 // fill them in Spark
-val final_histogram = rdd.aggregate(all_histograms)
+val final_histograms = rdd.aggregate(all_histograms)
       (new Increment, new Combine)
 \end{lstlisting}
 \end{frame}
@@ -420,9 +420,9 @@ val final_histogram = rdd.aggregate(all_histograms)
 \begin{frame}[fragile]{Example Spark session}
 \begin{lstlisting}[language=scala]
 all_histograms("pt").entries     // 0
-final_histogram("pt").entries    // 100000
+final_histograms("pt").entries    // 100000
 
-println(final_histogram("pt").ascii())
+println(final_histograms("pt").ascii())
 \end{lstlisting}
 \tiny
 \begin{verbatim}
