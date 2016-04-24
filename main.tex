@@ -420,7 +420,7 @@ val final_result = rdd.aggregate(all_histograms)
 \begin{frame}[fragile]{Example Spark session}
 \begin{lstlisting}[language=scala]
 all_histograms("pt").entries     // 0
-final_result("pt").entries    // 100000
+final_result("pt").entries       // 100000
 
 println(final_result("pt").ascii())
 \end{lstlisting}
