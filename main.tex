@@ -178,7 +178,7 @@ val h = Histogram("pt", 100, 0, 20,
 \vspace{-\baselineskip} \hfill $\underbrace{\mbox{\hspace{6.0 cm}}}_{\mbox{``fill rule:''} f: \mathcal{D} \to \mathbb{R}}$ \hspace{0.7 cm}
 
 \vfill
-This more functional design allows the filling and merging to be automatic: no user input required.
+This functional design allows the filling and merging to be automatic: no user input required.
 
 \begin{lstlisting}[language=scala]
 RDD.aggregate(h)(auto_increment(), auto_combine())
