@@ -416,7 +416,7 @@ val px_histogram = Histogram(100, -5, 5,
 val pt_histogram = Histogram(80, 0, 8,
   {mu: Muon => sqrt(mu.px**2 + mu.py**2)})
 val cut_histogram = Histogram(100, -5, 5,
-  {mu: Muon => mu.px}, {mu: Muon => mu.py < 0.0})
+  {mu: Muon => mu.px}, {mu: Muon => mu.py < 0})
 
 // wrap them up in a collection
 val all_histograms = Label("px" -> px_histogram,
@@ -436,7 +436,7 @@ final_result("pt").entries       // 100000
 
 \begin{uncoverenv}<2->
 \begin{lstlisting}[language=scala]
-println(final_result("pt").ascii())
+println(final_result("pt").ascii)
 \end{lstlisting}
 \tiny
 \begin{verbatim}
@@ -467,6 +467,16 @@ underflow          0    |                                                       
 ...
 \end{verbatim}
 \end{uncoverenv}
+\end{frame}
+
+\begin{frame}[fragile]{In Python\ldots}
+\begin{lstlisting}[language=python]
+th1f = final_result("pt").TH1F("name", "title")
+th1f.Draw()
+# because "import ROOT" didn't raise an ImportError
+\end{lstlisting}
+
+\includegraphics[width=\linewidth]{root_th1f.png}
 \end{frame}
 
 \begin{frame}{Histogrammar does not produce graphics}
