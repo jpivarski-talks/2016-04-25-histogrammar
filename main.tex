@@ -138,6 +138,9 @@ where
 
 \vfill
 \includegraphics[width=\linewidth]{aggregate.pdf}
+
+\vfill
+(Hadoop equivalent: reduce; \hspace{0.25 cm} SQL equivalent: ``{\tt GROUP BY}'')
 \end{frame}
 
 \begin{frame}[fragile]{Histograms fit naturally into aggregate}
@@ -203,6 +206,7 @@ RDD.aggregate(pack_o_histograms)(auto_increment(),
 \end{frame}
 
 \begin{frame}[fragile]{Third idea:}
+\vspace{0.5 cm}
 \textcolor{darkblue}{\large Let all of these pieces be composable.}
 
 \begin{lstlisting}[language=scala]
@@ -215,7 +219,7 @@ val directories =
                       "maxpt" -> Maximize(...)))
 \end{lstlisting}
 
-\vspace{0.5 cm}
+\vspace{1.5 cm}
 (Combining directories of histograms is similar to ROOT's {\tt \small hadd}.)
 \end{frame}
 
@@ -280,13 +284,14 @@ Fill a hashmap instead of an array:
 \begin{lstlisting}[language=scala]
 val unknown_support =
       SparselyBin(binWidth, fillX, Count())
+  // "SparselyBin" creates subaggregators as needed
 \end{lstlisting}
 
 Non-uniform bins:
 \begin{lstlisting}[language=scala]
-val like_clustering =
+val partitions_like_clustering =
       CentrallyBin(binCenters, fillX, Count())
-val may_overlap =
+val completely_arbitrary_bins =
       IrregularlyBin(binRanges, fillX, Count())
 \end{lstlisting}
 
