@@ -87,11 +87,11 @@ I'm working with an analysis group (Oliver Gutsche, Matteo Cremonesi, and Cristi
 \item[(3)] final plots.
 \end{description}
 
-\uncover<2>{\begin{block}{}
+\uncover<2->{\begin{block}{}
 Someday, it may be possible for analysis groups to do all work on a central server, rather than downloaded skims.
 
 \vspace{0.3 cm}
-(In some industries, this is already common, especially with SQL.)
+\uncover<3->{In some industries, this is already common, especially with SQL.}
 \end{block}}
 \end{frame}
 
@@ -103,7 +103,7 @@ Three different solutions are now in place for testing:
 
 \begin{itemize}
 \item bulk convert ROOT $\to$ Avro $\to$ any industry format;
-\item read ROOT directly into Scala in a single process using JNI;
+\item read ROOT directly into Scala in a single process with JNI;
 \item stream ROOT data through a UNIX pipe into Scala.
 \end{itemize}
 
@@ -148,11 +148,11 @@ import org.dianahep.scaroot.classes.TH1F
 
 val finalHist = RDD.aggregate(
     // "booking"
-      new TH1F("pt", "pt", 100, 0, 20))(
+    new TH1F("pt", "pt", 100, 0, 20))(
     // "filling"
-      {(h, d) => h.Fill(sqrt(d.px**2 + d.py**2))},
+    {(h, d) => h.Fill(sqrt(d.px**2 + d.py**2)); h},
     // "merging"
-      {(h1, h2) => h1.Add(h2)})
+    {(h1, h2) => h1.Add(h2); h1})
 \end{lstlisting}
 
 \uncover<2>{\begin{block}{}
@@ -160,7 +160,7 @@ val finalHist = RDD.aggregate(
 Not bad, but what if you want to fill more than one histogram?
 
 \begin{itemize}
-\item These are {\it functions:} all histograms must be passed in as arguments and collected as return values.
+\item These are {\it functions:} all histograms must be passed in as arguments and collected as return values ({\tt \small h} and {\tt \small h1} above).
 \item No global state because Spark is distributed.
 \item Data analyst has to maintain histogram code in three places.
 \end{itemize}
@@ -175,7 +175,7 @@ val h = Histogram("pt", 100, 0, 20,
                   {d => sqrt(d.px**2 + d.py**2)})
 \end{lstlisting}
 
-\vspace{-\baselineskip} \hfill $\underbrace{\mbox{\hspace{6.0 cm}}}_{\mbox{``fill rule:''} f: \mathcal{D} \to \mathbb{R}}$ \hspace{0.7 cm}
+\vspace{-\baselineskip} \hfill $\underbrace{\mbox{\hspace{6.0 cm}}}_{\mbox{``fill rule'' } {\displaystyle f: \mathcal{D} \to \mathbb{R}}}$ \hspace{0.7 cm}
 
 \vfill
 This functional design allows the filling and merging to be automatic: no user input required.
@@ -195,11 +195,11 @@ val pack_o_histograms = Label(
       ...)
 
 RDD.aggregate(pack_o_histograms)(auto_increment(),
-      auto_combine())
+                                 auto_combine())
 \end{lstlisting}
 
 \vfill
-({\tt \small Label} has the same superclass as {\tt \small Histogram}; they are called the same way by {\tt \small auto\_increment()} and {\tt \small auto\_combine()}.)
+({\tt \small Label} and {\tt \small Histogram} share a superclass; {\tt \small auto\_increment()} and {\tt \small auto\_combine()} call them the same way.)
 \end{frame}
 
 \begin{frame}[fragile]{Third idea:}
@@ -223,16 +223,17 @@ val directories =
 \textcolor{darkblue}{\large Notice that histograms themselves can be decomposed into smaller pieces:}
 
 \begin{lstlisting}[language=scala]
+val histogram = Histogram(100, 0, 20, fill_rule)
 val histogram = Bin(100, 0, 20, fill_rule, Count())
 \end{lstlisting}
 
 where
 \begin{itemize}
 \item {\tt \small Count} is an aggregator that counts events;
-\item {\tt \small Bin} is an aggregator that makes 100 sub-aggregators and uses {\tt \small fill\_rule} to decide which one to pass on the data to.
+\item {\tt \small Bin} is an aggregator that makes 100 sub-aggregators and uses {\tt \small fill\_rule} to decide which one to pass the data on to, just as {\tt \small Label} passes the data on to all of its contents.
 \end{itemize}
 
-\vfill
+\vspace{0.5 cm}
 \begin{uncoverenv}<2->
 We get two-dimensional histograms for free:
 \begin{lstlisting}[language=scala]
@@ -240,14 +241,16 @@ val hist2d = Bin(binsX, lowX, highX, fillX,
                    Bin(binsY, lowY, highY, fillY, Count()))
 \end{lstlisting}
 \end{uncoverenv}
-\vspace{-2 cm}
+\vspace{-1.5 cm}
 \end{frame}
 
 \begin{frame}[fragile]{}
+\vspace{0.5 cm}
 With the right sub-aggregators, we can get profile plots:
 \begin{lstlisting}[language=scala]
 val profile = Bin(binsX, lowX, highX, fillX,
-                    Deviate(fillY))
+                                  Deviate(fillY))
+  // "Deviate" accumulates mean & std deviation
 \end{lstlisting}
 
 Box-and-whisker plots:
@@ -256,6 +259,8 @@ val box_whiskers = Bin(binsX, lowX, highX, fillX,
                          Branch(Quantile(fillY),
                                 Minimize(fillY),
                                 Maximize(fillY)))
+  // "Quantile" accumulates median & quartiles
+  // "Branch" makes a tree of subaggregators
 \end{lstlisting}
 
 Heatmaps (average per bin, not a two-dimensional histogram):
@@ -263,6 +268,7 @@ Heatmaps (average per bin, not a two-dimensional histogram):
 val heatmap = Bin(binsX, lowX, highX, fillX,
                     Bin(binsY, lowY, fillY,
                           Average()))
+  // "Average" accumulates a mean only
 \end{lstlisting}
 \end{frame}
 
@@ -312,7 +318,7 @@ where {\tt \small q} is a function from $\mathcal{D} \to \mathbb{R}$ and {\tt \s
 \begin{lstlisting}[language=scala]
 val partition = Partition(q, cuts, Histogram(...))
 \end{lstlisting}
-Histograms now represent data {\it between} cuts (think of centrality bins in heavy ions).
+Histograms now represent data {\it between} cuts (think of centrality bins in heavy ion plots).
 \end{frame}
 
 \begin{frame}[fragile]{}
@@ -332,7 +338,7 @@ val backgrounds =
        Histogram(120, 0, 120, {d => d.dimuonMass}))
 \end{lstlisting}
 
-Stacking order can also be imposed after aggregation.
+Stacking order can also be imposed {\it after} aggregation.
 \end{frame}
 
 \begin{frame}{}
@@ -354,7 +360,7 @@ Stacking order can also be imposed after aggregation.
 }
 
 \vfill
-Can answer questions like, ``which cuts were applied in this plot?'' by walking the tree, rather than scanning a {\tt \small for} loop for {\tt \small break} statements.
+Can answer questions like, ``which cuts were applied in this plot?'' by walking the tree, rather than scanning a {\tt \small for} loop for {\tt \small break} statements by eye.
 \end{frame}
 
 \begin{frame}{Implementation}
@@ -391,7 +397,7 @@ Primitive & Scala & Python & Primitive & Scala & Python \\\hline
 Shared JSON representation so primitives can be freely exchanged.
 
 \vfill
-Other languages: C++, CUDA?, SQL, R, Javascript (for d3), \ldots
+Other languages: C++, SQL, R, Javascript (for d3), CUDA?, \ldots
 \end{frame}
 
 \begin{frame}[fragile]{Example Spark session}
@@ -403,7 +409,7 @@ import org.dianahep.histogrammar.histogram._
 val px_histogram = Histogram(100, -5, 5,
   {mu: Muon => mu.px})
 val pt_histogram = Histogram(80, 0, 8,
-  {mu: Muon => sqrt(mu.px*mu.px + mu.py*mu.py)})
+  {mu: Muon => sqrt(mu.px**2 + mu.py**2)})
 val cut_histogram = Histogram(100, -5, 5,
   {mu: Muon => mu.px}, {mu: Muon => mu.py < 0.0})
 
@@ -421,7 +427,10 @@ val final_result = rdd.aggregate(all_histograms)
 \begin{lstlisting}[language=scala]
 all_histograms("pt").entries     // 0
 final_result("pt").entries       // 100000
+\end{lstlisting}
 
+\begin{uncoverenv}<2->
+\begin{lstlisting}[language=scala]
 println(final_result("pt").ascii())
 \end{lstlisting}
 \tiny
@@ -452,6 +461,7 @@ underflow          0    |                                                       
 [  2    ,  2.10 )  2449 |*********************                                    |
 ...
 \end{verbatim}
+\end{uncoverenv}
 \end{frame}
 
 \begin{frame}{Histogrammar does not produce graphics}
@@ -461,7 +471,7 @@ underflow          0    |                                                       
 Although any combination of the primitives can be aggregated and used in an analysis, special combinations like {\tt Bin(Count)} are recognized as plottable.
 
 \vfill
-Histogrammar should link to external packages, such as Matplotlib and ROOT, to do actual plotting.
+Histogrammar should link to external packages, such as Matplotlib and ROOT, to do the actual plotting.
 \begin{itemize}
 \item Minimal codebase to reimplement in a variety of languages;
 \item More of a clearinghouse than a software product, connecting systems that iterate over data to systems that plot data.
@@ -474,7 +484,6 @@ Histogrammar should link to external packages, such as Matplotlib and ROOT, to d
 \tiny
 \renewcommand{\arraystretch}{1.3}
 \begin{tabular}{| p{0.1\linewidth} p{0.9\linewidth} |}\hline
-\bf Primitive       & \bf Description \\\hline
 Count           & Count data, ignoring their content. (Actually a sum of weights.) \\\hline
 Sum             & Accumulate the sum of a given quantity. \\
 Average         & Accumulate the weighted mean of a given quantity. \\
@@ -487,7 +496,7 @@ Bag             & Accumulate raw data up to an optional limit, at which point on
 Bin             & Split a given quantity into equally spaced bins between specified limits and fill only one bin per datum. \\
 SparselyBin     & Split a quantity into equally spaced bins, filling only one bin per datum and creating new bins as necessary. \\
 CentrallyBin    & Split a quantity into bins defined by a set of bin centers, filling only one datum per bin with no overflows or underflows. \\
-AdaptivelyBin   & Split a quanity into bins dynamically with a clustering algorithm, filling only one datum per bin with no overflows or underflows. \\
+AdaptivelyBin   & Split a quanity into bins dynamically with a clustering algorithm, filling only one datum per bin with no overflows or underflows. \\\hline
 Fraction        & Accumulate two containers, one with all data (denominator), and one with data that pass a given selection (numerator). \\
 Stack           & Accumulate a suite containers, filling all that are above a given cut on a given expression. \\
 Partition       & Accumulate a suite containers, filling the one that is between a pair of given cuts on a given expression. \\
